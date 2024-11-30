@@ -24,19 +24,25 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
-
-        $request->session()->regenerate();
-
-        return redirect()->intended(route('dashboard', absolute: false));
-    }
+        if (Auth::guard('director')->attempt($request->only('email', 'password'))) {
+            //dd('Autenticado como director');
+            $request->session()->regenerate();
+    
+            //return redirect()->intended(route('director.dashboard'));
+            return redirect()->route('director.dashboard');
+        }
+    
+        //dd('Falló la autenticación');
+        return back()->withErrors(['email' => 'Las credenciales no coinciden con nuestros registros.']);
+    } 
 
     /**
      * Destroy an authenticated session.
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        // Cambiar el guard a 'directors' en lugar de 'web'
+        Auth::guard('director')->logout();
 
         $request->session()->invalidate();
 
@@ -45,3 +51,5 @@ class AuthenticatedSessionController extends Controller
         return redirect('/');
     }
 }
+
+
